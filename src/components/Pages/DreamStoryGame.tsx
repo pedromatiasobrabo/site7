@@ -146,7 +146,7 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
           id: 'sleep',
           name: 'Cama',
           icon: Bed,
-          position: { x: 70, y: 60 },
+          position: { x: 75, y: 65 },
           description: 'Dormir na cama confortável',
           actionType: 'positive',
           consequences: ['Restaura energia e melhora humor', 'Aumenta qualidade do sono', 'Melhora saúde geral']
@@ -155,7 +155,7 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
           id: 'readBook',
           name: 'Cadeira de Leitura',
           icon: Book,
-          position: { x: 25, y: 35 },
+          position: { x: 20, y: 30 },
           description: 'Ler um livro na cadeira',
           actionType: 'positive',
           consequences: ['Aumenta produtividade', 'Melhora concentração', 'Desenvolve conhecimento']
@@ -174,7 +174,7 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
           id: 'watchTV',
           name: 'Televisão',
           icon: Tv,
-          position: { x: 75, y: 40 },
+          position: { x: 80, y: 35 },
           description: 'Assistir televisão no sofá',
           actionType: 'negative',
           consequences: ['Reduz atividade física', 'Pode causar sedentarismo', 'Diminui produtividade se excessivo']
@@ -183,7 +183,7 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
           id: 'meditation',
           name: 'Tapete',
           icon: Brain,
-          position: { x: 40, y: 70 },
+          position: { x: 45, y: 75 },
           description: 'Meditar ou se alongar no tapete',
           actionType: 'positive',
           consequences: ['Reduz estresse', 'Melhora bem-estar mental', 'Aumenta flexibilidade']
@@ -202,7 +202,7 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
           id: 'cookHealthy',
           name: 'Fogão',
           icon: Utensils,
-          position: { x: 30, y: 45 },
+          position: { x: 25, y: 45 },
           description: 'Cozinhar refeição saudável',
           actionType: 'positive',
           consequences: ['Melhora nutrição', 'Aumenta saúde', 'Desenvolve habilidades culinárias']
@@ -211,7 +211,7 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
           id: 'eat',
           name: 'Micro-ondas',
           icon: Zap,
-          position: { x: 70, y: 30 },
+          position: { x: 75, y: 25 },
           description: 'Aquecer comida congelada',
           actionType: 'negative',
           consequences: ['Nutrição inferior', 'Menos saudável', 'Conveniência vs qualidade']
@@ -220,7 +220,7 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
           id: 'drinkWater',
           name: 'Pia',
           icon: Droplets,
-          position: { x: 80, y: 50 },
+          position: { x: 85, y: 55 },
           description: 'Beber água fresca',
           actionType: 'positive',
           consequences: ['Melhora hidratação', 'Aumenta energia', 'Beneficia saúde geral']
@@ -239,7 +239,7 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
           id: 'exercise',
           name: 'Esteira',
           icon: Dumbbell,
-          position: { x: 60, y: 50 },
+          position: { x: 65, y: 50 },
           description: 'Correr na esteira',
           actionType: 'positive',
           consequences: ['Melhora condicionamento', 'Aumenta energia', 'Fortalece sistema cardiovascular']
@@ -248,7 +248,7 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
           id: 'weightLifting',
           name: 'Supino',
           icon: Award,
-          position: { x: 30, y: 60 },
+          position: { x: 25, y: 65 },
           description: 'Levantar pesos',
           actionType: 'positive',
           consequences: ['Aumenta força muscular', 'Melhora resistência', 'Desenvolve disciplina']
@@ -267,7 +267,7 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
           id: 'shower',
           name: 'Chuveiro',
           icon: Bath,
-          position: { x: 25, y: 60 },
+          position: { x: 20, y: 65 },
           description: 'Tomar banho relaxante',
           actionType: 'positive',
           consequences: ['Melhora higiene', 'Relaxa músculos', 'Aumenta bem-estar']
@@ -276,7 +276,7 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
           id: 'brushTeeth',
           name: 'Pia',
           icon: Smile,
-          position: { x: 70, y: 40 },
+          position: { x: 75, y: 35 },
           description: 'Escovar os dentes',
           actionType: 'positive',
           consequences: ['Mantém saúde bucal', 'Previne problemas dentários', 'Melhora higiene pessoal']
@@ -351,7 +351,7 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
     }, 1000);
 
     return () => {
-      if (gameTimeIntervalRef.current) {
+      if gameTimeIntervalRef.current) {
         clearInterval(gameTimeIntervalRef.current);
       }
     };
@@ -851,6 +851,252 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
 
   const currentRoom = getCurrentRoom();
 
+  // Pixel Art Room Component
+  const PixelArtRoom: React.FC<{ room: Room }> = ({ room }) => {
+    const renderRoomContent = () => {
+      switch (room.id) {
+        case 'bedroom':
+          return (
+            <div className="relative w-full h-full">
+              {/* Floor */}
+              <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-amber-900/30 to-amber-800/20"></div>
+              
+              {/* Walls */}
+              <div className="absolute top-0 left-0 right-0 h-2/3 bg-gradient-to-b from-blue-900/20 to-blue-800/30"></div>
+              
+              {/* Bed */}
+              <div className="absolute bottom-8 right-4 w-24 h-16 bg-red-800/60 rounded-lg border-2 border-red-900/80">
+                <div className="absolute top-1 left-1 right-1 h-3 bg-white/80 rounded"></div>
+                <div className="absolute top-4 left-1 right-1 bottom-1 bg-blue-600/70 rounded"></div>
+              </div>
+              
+              {/* Nightstand */}
+              <div className="absolute bottom-8 right-28 w-8 h-8 bg-amber-800/80 border border-amber-900"></div>
+              
+              {/* Reading Chair */}
+              <div className="absolute bottom-12 left-4 w-12 h-12 bg-green-800/70 rounded-lg border border-green-900">
+                <div className="absolute top-1 left-1 right-1 h-4 bg-green-600/80 rounded"></div>
+              </div>
+              
+              {/* Wardrobe */}
+              <div className="absolute top-8 left-4 w-16 h-20 bg-amber-900/80 border-2 border-amber-950">
+                <div className="absolute top-2 left-2 w-5 h-16 bg-amber-800/60 border-r border-amber-950"></div>
+                <div className="absolute top-2 right-2 w-5 h-16 bg-amber-800/60"></div>
+              </div>
+              
+              {/* Window */}
+              <div className="absolute top-4 right-8 w-16 h-12 bg-cyan-200/40 border-2 border-gray-600">
+                <div className="absolute inset-1 border border-gray-500"></div>
+                <div className="absolute top-1/2 left-0 right-0 h-px bg-gray-500"></div>
+                <div className="absolute top-0 bottom-0 left-1/2 w-px bg-gray-500"></div>
+              </div>
+            </div>
+          );
+          
+        case 'living':
+          return (
+            <div className="relative w-full h-full">
+              {/* Floor */}
+              <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-emerald-900/30 to-emerald-800/20"></div>
+              
+              {/* Walls */}
+              <div className="absolute top-0 left-0 right-0 h-2/3 bg-gradient-to-b from-emerald-900/20 to-emerald-800/30"></div>
+              
+              {/* Sofa */}
+              <div className="absolute bottom-12 left-8 w-20 h-12 bg-blue-800/70 rounded-lg border border-blue-900">
+                <div className="absolute top-1 left-1 right-1 h-4 bg-blue-600/80 rounded"></div>
+                <div className="absolute top-5 left-2 w-4 h-4 bg-blue-700/80 rounded"></div>
+                <div className="absolute top-5 right-2 w-4 h-4 bg-blue-700/80 rounded"></div>
+              </div>
+              
+              {/* TV */}
+              <div className="absolute top-16 right-4 w-16 h-12 bg-gray-900 border-2 border-gray-800 rounded">
+                <div className="absolute inset-2 bg-gray-700 rounded"></div>
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-800"></div>
+              </div>
+              
+              {/* TV Stand */}
+              <div className="absolute top-28 right-2 w-20 h-6 bg-amber-800/80 border border-amber-900"></div>
+              
+              {/* Coffee Table */}
+              <div className="absolute bottom-20 left-12 w-12 h-8 bg-amber-700/80 border border-amber-800 rounded"></div>
+              
+              {/* Carpet */}
+              <div className="absolute bottom-8 left-6 w-24 h-16 bg-red-800/40 border border-red-900/60 rounded">
+                <div className="absolute inset-2 border border-red-700/60"></div>
+                <div className="absolute top-4 left-4 right-4 bottom-4 bg-red-700/30"></div>
+              </div>
+              
+              {/* Plant */}
+              <div className="absolute top-12 left-4 w-6 h-8 bg-amber-800/80 border border-amber-900">
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-4 h-6 bg-green-600/80 rounded-full"></div>
+              </div>
+              
+              {/* Bookshelf */}
+              <div className="absolute top-8 left-12 w-12 h-16 bg-amber-900/80 border border-amber-950">
+                <div className="absolute top-2 left-1 right-1 h-2 bg-red-600/60"></div>
+                <div className="absolute top-5 left-1 right-1 h-2 bg-blue-600/60"></div>
+                <div className="absolute top-8 left-1 right-1 h-2 bg-green-600/60"></div>
+                <div className="absolute top-11 left-1 right-1 h-2 bg-purple-600/60"></div>
+              </div>
+            </div>
+          );
+          
+        case 'kitchen':
+          return (
+            <div className="relative w-full h-full">
+              {/* Floor */}
+              <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-gray-300/40 to-gray-200/30"></div>
+              
+              {/* Walls */}
+              <div className="absolute top-0 left-0 right-0 h-2/3 bg-gradient-to-b from-orange-200/30 to-orange-300/20"></div>
+              
+              {/* Counter */}
+              <div className="absolute bottom-8 left-4 w-32 h-8 bg-amber-700/80 border border-amber-800"></div>
+              
+              {/* Stove */}
+              <div className="absolute bottom-16 left-6 w-12 h-8 bg-gray-800 border border-gray-900 rounded">
+                <div className="absolute top-1 left-1 w-2 h-2 bg-red-500 rounded-full"></div>
+                <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></div>
+                <div className="absolute bottom-1 left-1 w-2 h-2 bg-red-500 rounded-full"></div>
+                <div className="absolute bottom-1 right-1 w-2 h-2 bg-red-500 rounded-full"></div>
+              </div>
+              
+              {/* Microwave */}
+              <div className="absolute top-12 right-4 w-12 h-8 bg-gray-700 border border-gray-800 rounded">
+                <div className="absolute inset-1 bg-gray-600 rounded"></div>
+                <div className="absolute top-1 right-1 w-2 h-2 bg-red-400 rounded"></div>
+              </div>
+              
+              {/* Refrigerator */}
+              <div className="absolute top-8 right-12 w-10 h-24 bg-gray-200 border-2 border-gray-400 rounded">
+                <div className="absolute top-2 left-1 right-1 h-10 border-b border-gray-400"></div>
+                <div className="absolute top-1 right-1 w-1 h-2 bg-gray-500"></div>
+                <div className="absolute top-14 right-1 w-1 h-2 bg-gray-500"></div>
+              </div>
+              
+              {/* Sink */}
+              <div className="absolute bottom-16 right-2 w-10 h-6 bg-gray-300 border border-gray-500 rounded">
+                <div className="absolute inset-1 bg-gray-400 rounded"></div>
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-2 h-1 bg-gray-600"></div>
+              </div>
+              
+              {/* Dining Table */}
+              <div className="absolute bottom-12 left-16 w-16 h-12 bg-amber-600/80 border border-amber-700 rounded"></div>
+              
+              {/* Cutting Board */}
+              <div className="absolute bottom-12 left-8 w-4 h-3 bg-amber-500/80 border border-amber-600 rounded"></div>
+              
+              {/* Fruits */}
+              <div className="absolute bottom-11 left-10 w-2 h-2 bg-red-500 rounded-full"></div>
+              <div className="absolute bottom-11 left-12 w-2 h-2 bg-orange-500 rounded-full"></div>
+              <div className="absolute bottom-11 left-14 w-2 h-2 bg-yellow-500 rounded-full"></div>
+            </div>
+          );
+          
+        case 'gym':
+          return (
+            <div className="relative w-full h-full">
+              {/* Floor */}
+              <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-gray-800/40 to-gray-700/30"></div>
+              
+              {/* Walls */}
+              <div className="absolute top-0 left-0 right-0 h-2/3 bg-gradient-to-b from-gray-700/30 to-gray-800/20"></div>
+              
+              {/* Treadmill */}
+              <div className="absolute bottom-12 right-8 w-16 h-12 bg-gray-800 border border-gray-900 rounded">
+                <div className="absolute top-2 left-2 right-2 h-6 bg-gray-700 rounded"></div>
+                <div className="absolute bottom-1 left-2 right-2 h-2 bg-gray-900"></div>
+                <div className="absolute top-1 right-1 w-3 h-4 bg-red-600 rounded"></div>
+              </div>
+              
+              {/* Bench Press */}
+              <div className="absolute bottom-8 left-4 w-20 h-8 bg-gray-700 border border-gray-800">
+                <div className="absolute top-1 left-2 right-2 h-2 bg-gray-600"></div>
+                <div className="absolute top-4 left-4 right-4 h-2 bg-gray-800"></div>
+              </div>
+              
+              {/* Weights */}
+              <div className="absolute bottom-16 left-6 w-3 h-3 bg-gray-900 rounded-full border border-gray-800"></div>
+              <div className="absolute bottom-16 left-10 w-3 h-3 bg-gray-900 rounded-full border border-gray-800"></div>
+              <div className="absolute bottom-16 left-14 w-3 h-3 bg-gray-900 rounded-full border border-gray-800"></div>
+              
+              {/* Mirror */}
+              <div className="absolute top-8 left-4 w-24 h-16 bg-gray-300/60 border-2 border-gray-500">
+                <div className="absolute inset-1 bg-gray-200/40"></div>
+              </div>
+              
+              {/* Dumbbells */}
+              <div className="absolute bottom-12 left-16 w-6 h-2 bg-gray-800 rounded">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gray-900 rounded-full"></div>
+                <div className="absolute right-0 top-0 bottom-0 w-1 bg-gray-900 rounded-full"></div>
+              </div>
+              
+              {/* Fan */}
+              <div className="absolute top-4 right-8 w-8 h-8 bg-gray-600 rounded-full border border-gray-700">
+                <div className="absolute inset-2 bg-gray-500 rounded-full"></div>
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1 h-4 bg-gray-400"></div>
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-1 bg-gray-400"></div>
+              </div>
+            </div>
+          );
+          
+        case 'bathroom':
+          return (
+            <div className="relative w-full h-full">
+              {/* Floor */}
+              <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-blue-200/40 to-blue-100/30"></div>
+              
+              {/* Walls */}
+              <div className="absolute top-0 left-0 right-0 h-2/3 bg-gradient-to-b from-blue-100/30 to-blue-200/20"></div>
+              
+              {/* Shower */}
+              <div className="absolute bottom-8 left-4 w-12 h-16 bg-gray-300/60 border-2 border-gray-500">
+                <div className="absolute top-2 left-2 right-2 h-1 bg-gray-600"></div>
+                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-1 h-8 bg-gray-600"></div>
+                <div className="absolute bottom-2 left-2 right-2 h-8 bg-blue-300/40"></div>
+              </div>
+              
+              {/* Sink */}
+              <div className="absolute bottom-16 right-4 w-12 h-8 bg-white/80 border border-gray-400 rounded">
+                <div className="absolute top-2 left-2 right-2 h-3 bg-gray-200 rounded"></div>
+                <div className="absolute top-1 left-1/2 transform -translate-x-1/2 w-2 h-1 bg-gray-500"></div>
+              </div>
+              
+              {/* Mirror */}
+              <div className="absolute top-8 right-4 w-12 h-8 bg-gray-300/60 border border-gray-500">
+                <div className="absolute inset-1 bg-gray-200/40"></div>
+              </div>
+              
+              {/* Toilet */}
+              <div className="absolute bottom-8 right-12 w-6 h-8 bg-white/90 border border-gray-400 rounded">
+                <div className="absolute top-1 left-1 right-1 h-3 bg-gray-100 rounded"></div>
+                <div className="absolute bottom-1 left-1 right-1 h-3 bg-white rounded"></div>
+              </div>
+              
+              {/* Towel */}
+              <div className="absolute top-12 left-8 w-3 h-8 bg-blue-400/80 border border-blue-500"></div>
+              
+              {/* Bath Mat */}
+              <div className="absolute bottom-4 left-8 w-12 h-4 bg-blue-600/60 border border-blue-700 rounded"></div>
+              
+              {/* Toilet Paper */}
+              <div className="absolute bottom-12 right-8 w-2 h-2 bg-white border border-gray-300 rounded-full"></div>
+            </div>
+          );
+          
+        default:
+          return <div className="w-full h-full bg-gray-500/20"></div>;
+      }
+    };
+
+    return (
+      <div className="absolute inset-0 overflow-hidden">
+        {renderRoomContent()}
+      </div>
+    );
+  };
+
   return (
     <div className={`h-screen flex flex-col transition-colors duration-300 overflow-hidden ${
       isDark ? 'bg-slate-950' : 'bg-gradient-to-br from-white via-emerald-50/80 to-emerald-100/60'
@@ -993,22 +1239,9 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
 
         {/* Game Area */}
         <div className="flex-1 relative overflow-hidden">
-          {/* Room Background */}
-          <div className={`absolute inset-0 transition-all duration-500 bg-gradient-to-br ${currentRoom.background} ${
-            isDark 
-              ? 'from-slate-800 to-slate-900' 
-              : 'from-emerald-100 to-emerald-200'
-          }`}>
-            {/* Grid pattern */}
-            <div className="absolute inset-0 opacity-10">
-              <div className="grid grid-cols-10 grid-rows-10 h-full w-full">
-                {Array.from({ length: 100 }).map((_, i) => (
-                  <div key={i} className={`border ${
-                    isDark ? 'border-slate-600' : 'border-emerald-300'
-                  }`}></div>
-                ))}
-              </div>
-            </div>
+          {/* Pixel Art Room Background */}
+          <div className="absolute inset-0">
+            <PixelArtRoom room={currentRoom} />
           </div>
 
           {/* Room Navigation */}
