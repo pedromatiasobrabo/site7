@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Trophy, Moon, Sun, Coffee, Smartphone, Bed, Volume2, VolumeX, Star, Award, Heart, Users, Briefcase, Home, Dumbbell, Utensils, Droplets, Bath, Tv, Book, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { ArrowLeft, Trophy, Moon, Sun, Coffee, Smartphone, Bed, Volume2, VolumeX, Star, Award, Heart, Users, Briefcase, Home, Dumbbell, Utensils, Droplets, Bath, Tv, Book, ChevronLeft, ChevronRight, Clock, Zap, Brain, Eye, Smile, Frown, Meh, AlertTriangle } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 
 interface DreamStoryGameProps {
@@ -9,7 +9,7 @@ interface DreamStoryGameProps {
 interface GameState {
   score: number;
   currentDay: number;
-  gameTime: Date; // Game time (24h cycle)
+  gameTime: Date;
   gameCompleted: boolean;
   soundEnabled: boolean;
   musicEnabled: boolean;
@@ -20,7 +20,10 @@ interface GameState {
     sleepQuality: number;
     relationships: number;
     productivity: number;
-    mood: 'happy' | 'tired' | 'stressed' | 'relaxed';
+    hygiene: number;
+    nutrition: number;
+    fitness: number;
+    mood: 'happy' | 'tired' | 'stressed' | 'relaxed' | 'energetic' | 'sick';
   };
   dailyActions: {
     sleep: boolean;
@@ -29,8 +32,16 @@ interface GameState {
     relax: boolean;
     drinkWater: boolean;
     shower: boolean;
+    brushTeeth: boolean;
+    cookHealthy: boolean;
+    readBook: boolean;
+    watchTV: boolean;
+    meditation: boolean;
+    weightLifting: boolean;
   };
   lastActionTime: Date;
+  consecutiveGoodActions: number;
+  consecutiveBadActions: number;
 }
 
 interface Room {
@@ -40,6 +51,7 @@ interface Room {
   actions: RoomAction[];
   description: string;
   background: string;
+  detailedDescription: string;
 }
 
 interface RoomAction {
@@ -48,6 +60,8 @@ interface RoomAction {
   icon: React.ComponentType<any>;
   position: { x: number; y: number };
   description: string;
+  actionType: 'positive' | 'negative' | 'neutral';
+  consequences: string[];
 }
 
 const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
@@ -61,13 +75,16 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
     action: string;
     actionId: keyof GameState['dailyActions'];
     room: string;
-  }>({ show: false, action: '', actionId: 'sleep', room: '' });
+    actionType: 'positive' | 'negative' | 'neutral';
+    consequences: string[];
+  }>({ show: false, action: '', actionId: 'sleep', room: '', actionType: 'neutral', consequences: [] });
   
   const [showFeedback, setShowFeedback] = useState<{
     show: boolean;
     message: string;
-    type: 'positive' | 'negative';
-  }>({ show: false, message: '', type: 'positive' });
+    type: 'positive' | 'negative' | 'neutral';
+    points: number;
+  }>({ show: false, message: '', type: 'positive', points: 0 });
   
   const [alexAnimation, setAlexAnimation] = useState<string>('idle');
   const [musicLoaded, setMusicLoaded] = useState(false);
@@ -81,7 +98,7 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
   const [gameState, setGameState] = useState<GameState>({
     score: 0,
     currentDay: 1,
-    gameTime: new Date(2024, 0, 1, 7, 0, 0), // Start at 7:00 AM
+    gameTime: new Date(2024, 0, 1, 7, 0, 0),
     gameCompleted: false,
     soundEnabled: true,
     musicEnabled: true,
@@ -92,6 +109,9 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
       sleepQuality: 50,
       relationships: 50,
       productivity: 50,
+      hygiene: 50,
+      nutrition: 50,
+      fitness: 50,
       mood: 'happy'
     },
     dailyActions: {
@@ -100,9 +120,17 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
       exercise: false,
       relax: false,
       drinkWater: false,
-      shower: false
+      shower: false,
+      brushTeeth: false,
+      cookHealthy: false,
+      readBook: false,
+      watchTV: false,
+      meditation: false,
+      weightLifting: false
     },
-    lastActionTime: new Date()
+    lastActionTime: new Date(),
+    consecutiveGoodActions: 0,
+    consecutiveBadActions: 0
   });
 
   const rooms: Room[] = [
@@ -110,7 +138,8 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
       id: 'bedroom',
       name: 'Quarto',
       icon: Bed,
-      description: 'O quarto aconchegante de Alex com uma cama confortável',
+      description: 'Quarto aconchegante com cama confortável',
+      detailedDescription: 'Um quarto pixel art com uma cama grande com cobertores coloridos, um armário de madeira com portas abertas e uma cômoda. No canto, uma cadeira de leitura e uma luminária de mesa. Ao lado da cama, uma pequena mesa de cabeceira com um relógio despertador.',
       background: 'from-purple-900/20 to-blue-900/20',
       actions: [
         {
@@ -118,7 +147,18 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
           name: 'Cama',
           icon: Bed,
           position: { x: 70, y: 60 },
-          description: 'Dormir'
+          description: 'Dormir na cama confortável',
+          actionType: 'positive',
+          consequences: ['Restaura energia e melhora humor', 'Aumenta qualidade do sono', 'Melhora saúde geral']
+        },
+        {
+          id: 'readBook',
+          name: 'Cadeira de Leitura',
+          icon: Book,
+          position: { x: 25, y: 35 },
+          description: 'Ler um livro na cadeira',
+          actionType: 'positive',
+          consequences: ['Aumenta produtividade', 'Melhora concentração', 'Desenvolve conhecimento']
         }
       ]
     },
@@ -126,15 +166,27 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
       id: 'living',
       name: 'Sala de Estar',
       icon: Tv,
-      description: 'Sala confortável com sofá e TV para relaxar',
+      description: 'Sala confortável com sofá e TV',
+      detailedDescription: 'Uma sala de estar detalhada em pixel art, com um sofá confortável, uma televisão com controles ao lado e uma mesa de centro. Objetos decorativos como uma planta em um vaso ao lado da janela, um tapete de padrão geométrico no chão e prateleiras com livros.',
       background: 'from-emerald-900/20 to-teal-900/20',
       actions: [
         {
-          id: 'relax',
-          name: 'Sofá',
+          id: 'watchTV',
+          name: 'Televisão',
           icon: Tv,
-          position: { x: 30, y: 50 },
-          description: 'Relaxar'
+          position: { x: 75, y: 40 },
+          description: 'Assistir televisão no sofá',
+          actionType: 'negative',
+          consequences: ['Reduz atividade física', 'Pode causar sedentarismo', 'Diminui produtividade se excessivo']
+        },
+        {
+          id: 'meditation',
+          name: 'Tapete',
+          icon: Brain,
+          position: { x: 40, y: 70 },
+          description: 'Meditar ou se alongar no tapete',
+          actionType: 'positive',
+          consequences: ['Reduz estresse', 'Melhora bem-estar mental', 'Aumenta flexibilidade']
         }
       ]
     },
@@ -142,22 +194,36 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
       id: 'kitchen',
       name: 'Cozinha',
       icon: Utensils,
-      description: 'Cozinha equipada para preparar refeições saudáveis',
+      description: 'Cozinha equipada para refeições',
+      detailedDescription: 'Uma cozinha pixel art detalhada com um fogão a gás, um micro-ondas, uma pia, uma geladeira e uma mesa de jantar. Na bancada, uma tábua de cortar, faca e frutas frescas.',
       background: 'from-orange-900/20 to-red-900/20',
       actions: [
         {
-          id: 'eat',
-          name: 'Mesa',
+          id: 'cookHealthy',
+          name: 'Fogão',
           icon: Utensils,
-          position: { x: 50, y: 40 },
-          description: 'Comer'
+          position: { x: 30, y: 45 },
+          description: 'Cozinhar refeição saudável',
+          actionType: 'positive',
+          consequences: ['Melhora nutrição', 'Aumenta saúde', 'Desenvolve habilidades culinárias']
+        },
+        {
+          id: 'eat',
+          name: 'Micro-ondas',
+          icon: Zap,
+          position: { x: 70, y: 30 },
+          description: 'Aquecer comida congelada',
+          actionType: 'negative',
+          consequences: ['Nutrição inferior', 'Menos saudável', 'Conveniência vs qualidade']
         },
         {
           id: 'drinkWater',
-          name: 'Água',
+          name: 'Pia',
           icon: Droplets,
-          position: { x: 80, y: 30 },
-          description: 'Beber água'
+          position: { x: 80, y: 50 },
+          description: 'Beber água fresca',
+          actionType: 'positive',
+          consequences: ['Melhora hidratação', 'Aumenta energia', 'Beneficia saúde geral']
         }
       ]
     },
@@ -165,15 +231,27 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
       id: 'gym',
       name: 'Academia',
       icon: Dumbbell,
-      description: 'Academia bem equipada para exercícios',
+      description: 'Academia bem equipada',
+      detailedDescription: 'Uma academia em pixel art com equipamentos de exercício como uma esteira e um supino reto. Pesos e halteres ao redor, além de um espelho na parede e um ventilador de teto.',
       background: 'from-gray-900/20 to-slate-900/20',
       actions: [
         {
           id: 'exercise',
-          name: 'Equipamentos',
+          name: 'Esteira',
           icon: Dumbbell,
           position: { x: 60, y: 50 },
-          description: 'Exercitar-se'
+          description: 'Correr na esteira',
+          actionType: 'positive',
+          consequences: ['Melhora condicionamento', 'Aumenta energia', 'Fortalece sistema cardiovascular']
+        },
+        {
+          id: 'weightLifting',
+          name: 'Supino',
+          icon: Award,
+          position: { x: 30, y: 60 },
+          description: 'Levantar pesos',
+          actionType: 'positive',
+          consequences: ['Aumenta força muscular', 'Melhora resistência', 'Desenvolve disciplina']
         }
       ]
     },
@@ -182,14 +260,26 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
       name: 'Banheiro',
       icon: Bath,
       description: 'Banheiro limpo e relaxante',
+      detailedDescription: 'Um banheiro em pixel art com um chuveiro com cortina, uma pia com espelho, um vaso sanitário e uma toalha pendurada. No chão, um tapete de banho macio.',
       background: 'from-blue-900/20 to-cyan-900/20',
       actions: [
         {
           id: 'shower',
           name: 'Chuveiro',
           icon: Bath,
-          position: { x: 40, y: 60 },
-          description: 'Tomar banho'
+          position: { x: 25, y: 60 },
+          description: 'Tomar banho relaxante',
+          actionType: 'positive',
+          consequences: ['Melhora higiene', 'Relaxa músculos', 'Aumenta bem-estar']
+        },
+        {
+          id: 'brushTeeth',
+          name: 'Pia',
+          icon: Smile,
+          position: { x: 70, y: 40 },
+          description: 'Escovar os dentes',
+          actionType: 'positive',
+          consequences: ['Mantém saúde bucal', 'Previne problemas dentários', 'Melhora higiene pessoal']
         }
       ]
     }
@@ -201,7 +291,6 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
     }
 
-    // Initialize background music with correct URL
     if (!backgroundMusicRef.current) {
       const audio = new Audio('/[KAIROSOFT SOUNDTRACKS] Game Dev Story Working Hard (1).mp3');
       audio.loop = true;
@@ -210,7 +299,6 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
       
       audio.addEventListener('canplaythrough', () => {
         setMusicLoaded(true);
-        console.log('Background music loaded successfully');
       });
       
       audio.addEventListener('error', (e) => {
@@ -229,14 +317,13 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
     };
   }, []);
 
-  // Game time progression (1 second real = 15 minutes game time)
+  // Game time progression
   useEffect(() => {
     gameTimeIntervalRef.current = setInterval(() => {
       setGameState(prev => {
         const newGameTime = new Date(prev.gameTime);
-        newGameTime.setMinutes(newGameTime.getMinutes() + 15); // Add 15 minutes every second
+        newGameTime.setMinutes(newGameTime.getMinutes() + 15);
         
-        // Check if it's a new day (past midnight)
         if (newGameTime.getDate() !== prev.gameTime.getDate()) {
           return {
             ...prev,
@@ -248,15 +335,18 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
               exercise: false,
               relax: false,
               drinkWater: false,
-              shower: false
+              shower: false,
+              brushTeeth: false,
+              cookHealthy: false,
+              readBook: false,
+              watchTV: false,
+              meditation: false,
+              weightLifting: false
             }
           };
         }
         
-        return {
-          ...prev,
-          gameTime: newGameTime
-        };
+        return { ...prev, gameTime: newGameTime };
       });
     }, 1000);
 
@@ -294,8 +384,8 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
     }
   };
 
-  // 8-bit sound generation
-  const playSound = (type: 'positive' | 'negative' | 'button') => {
+  // Enhanced sound generation
+  const playSound = (type: 'positive' | 'negative' | 'button' | 'achievement') => {
     if (!gameState.soundEnabled || !audioContextRef.current) return;
 
     const ctx = audioContextRef.current;
@@ -340,15 +430,31 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
           osc.stop(ctx.currentTime + i * 0.2 + 0.4);
         });
         break;
+      case 'achievement':
+        [523, 659, 784, 1047, 1319].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.1);
+          gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.5);
+          osc.start(ctx.currentTime + i * 0.1);
+          osc.stop(ctx.currentTime + i * 0.1 + 0.5);
+        });
+        break;
     }
   };
 
   const updateAlexMood = (alex: any) => {
-    const avgStats = (alex.health + alex.energy + alex.sleepQuality + alex.relationships) / 4;
-    if (avgStats >= 70) return 'happy';
+    const avgStats = (alex.health + alex.energy + alex.sleepQuality + alex.hygiene + alex.nutrition + alex.fitness) / 6;
+    
+    if (avgStats >= 80) return 'energetic';
+    if (avgStats >= 65) return 'happy';
     if (avgStats >= 50) return 'relaxed';
-    if (avgStats >= 30) return 'tired';
-    return 'stressed';
+    if (avgStats >= 35) return 'tired';
+    if (avgStats >= 20) return 'stressed';
+    return 'sick';
   };
 
   const navigateRoom = (direction: 'left' | 'right') => {
@@ -374,27 +480,26 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
     handleFirstInteraction();
     playSound('button');
     
-    // Check if action already performed today
     if (gameState.dailyActions[action.id]) {
       setShowFeedback({
         show: true,
         message: `Alex já ${action.description.toLowerCase()} hoje! Tente novamente amanhã.`,
-        type: 'negative'
+        type: 'negative',
+        points: 0
       });
-      setTimeout(() => setShowFeedback({ show: false, message: '', type: 'positive' }), 3000);
+      setTimeout(() => setShowFeedback({ show: false, message: '', type: 'positive', points: 0 }), 3000);
       return;
     }
 
-    // Special actions that take Alex outside
-    if (action.id === 'relax' && Math.random() > 0.5) {
-      // Sometimes relaxing means going out with friends
+    // Special random events for certain actions
+    if (action.id === 'relax' && Math.random() > 0.7) {
       setShowOutsideAction({
         show: true,
-        message: "Alex foi para a balada com os amigos.",
+        message: "Alex decidiu sair para encontrar amigos no parque.",
         consequence: Math.random() > 0.5 
-          ? "Parabéns! Alex fez novos amigos e se divertiu! Ganhou 15 pontos!"
-          : "Oh não! Alex ficou cansado e perdeu qualidade de sono. Sua pontuação caiu 10 pontos!",
-        points: Math.random() > 0.5 ? 15 : -10
+          ? "Ótimo! Alex fez novos amigos e se divertiu ao ar livre! Ganhou 20 pontos e melhorou relacionamentos!"
+          : "Alex ficou muito tempo fora e se cansou. Perdeu 15 pontos e energia.",
+        points: Math.random() > 0.5 ? 20 : -15
       });
       return;
     }
@@ -403,7 +508,9 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
       show: true,
       action: action.description,
       actionId: action.id,
-      room: getCurrentRoom().name
+      room: getCurrentRoom().name,
+      actionType: action.actionType,
+      consequences: action.consequences
     });
   };
 
@@ -411,18 +518,32 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
     handleFirstInteraction();
     
     if (!confirmed) {
-      setShowConfirmation({ show: false, action: '', actionId: 'sleep', room: '' });
+      setShowConfirmation({ 
+        show: false, 
+        action: '', 
+        actionId: 'sleep', 
+        room: '', 
+        actionType: 'neutral', 
+        consequences: [] 
+      });
       return;
     }
 
     const actionId = showConfirmation.actionId;
-    const actionEffects = getActionEffects(actionId);
+    const actionType = showConfirmation.actionType;
+    const actionEffects = getActionEffects(actionId, actionType);
     
-    // Play animation
     setAlexAnimation(actionId);
     
-    // Play sound
-    playSound(actionEffects.points > 0 ? 'positive' : 'negative');
+    // Play appropriate sound
+    if (actionEffects.points > 0) {
+      playSound('positive');
+      if (actionEffects.points >= 25) {
+        playSound('achievement');
+      }
+    } else if (actionEffects.points < 0) {
+      playSound('negative');
+    }
 
     // Update game state
     setGameState(prev => {
@@ -438,6 +559,18 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
       newAlex.mood = updateAlexMood(newAlex);
 
       const newScore = Math.max(0, prev.score + actionEffects.points);
+      
+      // Update consecutive actions
+      let newConsecutiveGood = prev.consecutiveGoodActions;
+      let newConsecutiveBad = prev.consecutiveBadActions;
+      
+      if (actionEffects.points > 0) {
+        newConsecutiveGood += 1;
+        newConsecutiveBad = 0;
+      } else if (actionEffects.points < 0) {
+        newConsecutiveBad += 1;
+        newConsecutiveGood = 0;
+      }
 
       return {
         ...prev,
@@ -447,7 +580,9 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
           ...prev.dailyActions,
           [actionId]: true
         },
-        lastActionTime: new Date()
+        lastActionTime: new Date(),
+        consecutiveGoodActions: newConsecutiveGood,
+        consecutiveBadActions: newConsecutiveBad
       };
     });
 
@@ -455,35 +590,40 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
     setShowFeedback({
       show: true,
       message: actionEffects.message,
-      type: actionEffects.points > 0 ? 'positive' : 'negative'
+      type: actionEffects.points > 0 ? 'positive' : actionEffects.points < 0 ? 'negative' : 'neutral',
+      points: actionEffects.points
     });
 
-    // Hide confirmation
-    setShowConfirmation({ show: false, action: '', actionId: 'sleep', room: '' });
+    setShowConfirmation({ 
+      show: false, 
+      action: '', 
+      actionId: 'sleep', 
+      room: '', 
+      actionType: 'neutral', 
+      consequences: [] 
+    });
 
-    // Reset animation after 2 seconds
     setTimeout(() => {
       setAlexAnimation('idle');
-      setShowFeedback({ show: false, message: '', type: 'positive' });
+      setShowFeedback({ show: false, message: '', type: 'positive', points: 0 });
     }, 3000);
   };
 
   const handleOutsideActionOK = () => {
-    const { points, consequence } = showOutsideAction;
+    const { points } = showOutsideAction;
     
-    // Apply consequences
     setGameState(prev => {
       const newAlex = { ...prev.alex };
       
       if (points > 0) {
-        newAlex.relationships += 15;
-        newAlex.health += 5;
+        newAlex.relationships += 20;
+        newAlex.health += 10;
+        newAlex.energy += 5;
       } else {
-        newAlex.sleepQuality -= 20;
-        newAlex.energy -= 15;
+        newAlex.energy -= 20;
+        newAlex.health -= 10;
       }
       
-      // Clamp values
       Object.keys(newAlex).forEach(key => {
         if (typeof (newAlex as any)[key] === 'number') {
           (newAlex as any)[key] = Math.max(0, Math.min(100, (newAlex as any)[key]));
@@ -500,59 +640,97 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
           ...prev.dailyActions,
           relax: true
         },
-        currentRoom: 'living' // Alex returns to living room
+        currentRoom: 'living'
       };
     });
 
-    // Show feedback
     setShowFeedback({
       show: true,
-      message: consequence,
-      type: points > 0 ? 'positive' : 'negative'
+      message: showOutsideAction.consequence,
+      type: points > 0 ? 'positive' : 'negative',
+      points: points
     });
 
     setShowOutsideAction({ show: false, message: '', consequence: '', points: 0 });
 
     setTimeout(() => {
-      setShowFeedback({ show: false, message: '', type: 'positive' });
+      setShowFeedback({ show: false, message: '', type: 'positive', points: 0 });
     }, 3000);
   };
 
-  const getActionEffects = (action: keyof GameState['dailyActions']) => {
-    const effects: Record<string, any> = {
+  const getActionEffects = (action: keyof GameState['dailyActions'], actionType: 'positive' | 'negative' | 'neutral') => {
+    const baseEffects: Record<string, any> = {
       sleep: {
-        points: 20,
-        message: "Parabéns! Alex dormiu bem e recuperou energia. Ganhou 20 pontos!",
-        effects: { sleepQuality: 25, energy: 20, health: 10 }
+        points: 25,
+        message: "💤 Excelente! Alex dormiu profundamente e acordou revigorado! +25 pontos!",
+        effects: { sleepQuality: 30, energy: 25, health: 15, mood: 'energetic' }
       },
-      eat: {
+      brushTeeth: {
         points: 15,
-        message: "Parabéns! Alex fez uma refeição saudável. Ganhou 15 pontos!",
-        effects: { health: 20, energy: 15 }
-      },
-      exercise: {
-        points: 18,
-        message: "Parabéns! Alex se exercitou e melhorou sua saúde. Ganhou 18 pontos!",
-        effects: { health: 25, energy: -5, sleepQuality: 10 }
-      },
-      relax: {
-        points: 12,
-        message: "Parabéns! Alex relaxou e reduziu o estresse. Ganhou 12 pontos!",
-        effects: { relationships: 15, health: 10, energy: 10 }
-      },
-      drinkWater: {
-        points: 8,
-        message: "Parabéns! Alex se hidratou bem. Ganhou 8 pontos!",
-        effects: { health: 10, energy: 5 }
+        message: "🦷 Perfeito! Alex manteve uma excelente higiene bucal! +15 pontos!",
+        effects: { hygiene: 25, health: 10 }
       },
       shower: {
-        points: 10,
-        message: "Parabéns! Alex tomou banho e se sente renovado. Ganhou 10 pontos!",
-        effects: { health: 15, relationships: 10 }
+        points: 20,
+        message: "🚿 Ótimo! Alex se sente limpo e renovado após o banho! +20 pontos!",
+        effects: { hygiene: 30, health: 15, energy: 10 }
+      },
+      cookHealthy: {
+        points: 30,
+        message: "👨‍🍳 Fantástico! Alex preparou uma refeição nutritiva e deliciosa! +30 pontos!",
+        effects: { nutrition: 35, health: 20, energy: 15 }
+      },
+      eat: {
+        points: -15,
+        message: "🥡 Hmm... Comida de micro-ondas não é a melhor opção. -15 pontos.",
+        effects: { nutrition: -10, health: -5 }
+      },
+      drinkWater: {
+        points: 12,
+        message: "💧 Hidratação é fundamental! Alex se sente mais energizado! +12 pontos!",
+        effects: { health: 15, energy: 10 }
+      },
+      exercise: {
+        points: 25,
+        message: "🏃‍♂️ Incrível! Alex completou um ótimo treino cardiovascular! +25 pontos!",
+        effects: { fitness: 30, health: 20, energy: -5, sleepQuality: 15 }
+      },
+      weightLifting: {
+        points: 28,
+        message: "💪 Excelente! Alex desenvolveu força e resistência! +28 pontos!",
+        effects: { fitness: 35, health: 25, energy: -10, productivity: 10 }
+      },
+      readBook: {
+        points: 22,
+        message: "📚 Maravilhoso! Alex expandiu seus conhecimentos através da leitura! +22 pontos!",
+        effects: { productivity: 25, energy: 5, sleepQuality: 10 }
+      },
+      watchTV: {
+        points: -12,
+        message: "📺 Alex passou muito tempo assistindo TV. Sedentarismo não é bom. -12 pontos.",
+        effects: { fitness: -15, energy: -10, productivity: -5 }
+      },
+      meditation: {
+        points: 20,
+        message: "🧘‍♂️ Perfeito! Alex encontrou paz interior e reduziu o estresse! +20 pontos!",
+        effects: { health: 20, energy: 15, sleepQuality: 20, productivity: 10 }
+      },
+      relax: {
+        points: 15,
+        message: "😌 Ótimo! Alex relaxou e recarregou as energias! +15 pontos!",
+        effects: { relationships: 15, health: 10, energy: 10 }
       }
     };
 
-    return effects[action] || { points: 0, message: '', effects: {} };
+    // Apply bonuses for consecutive good actions
+    const effect = baseEffects[action] || { points: 0, message: '', effects: {} };
+    
+    if (actionType === 'positive' && gameState.consecutiveGoodActions >= 3) {
+      effect.points = Math.floor(effect.points * 1.5);
+      effect.message += " 🔥 Sequência de boas ações! Bônus aplicado!";
+    }
+
+    return effect;
   };
 
   const getCurrentRoom = () => {
@@ -560,23 +738,27 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
   };
 
   const getScoreColor = () => {
-    if (gameState.score >= 100) return 'text-green-400';
-    if (gameState.score >= 0) return 'text-yellow-400';
+    if (gameState.score >= 200) return 'text-green-400';
+    if (gameState.score >= 100) return 'text-yellow-400';
+    if (gameState.score >= 0) return 'text-orange-400';
     return 'text-red-400';
   };
 
   const getStatColor = (value: number) => {
-    if (value >= 70) return 'text-green-400';
-    if (value >= 40) return 'text-yellow-400';
+    if (value >= 80) return 'text-green-400';
+    if (value >= 60) return 'text-yellow-400';
+    if (value >= 40) return 'text-orange-400';
     return 'text-red-400';
   };
 
   const getMoodEmoji = () => {
     switch (gameState.alex.mood) {
+      case 'energetic': return '⚡';
       case 'happy': return '😊';
       case 'relaxed': return '😌';
       case 'tired': return '😴';
       case 'stressed': return '😰';
+      case 'sick': return '🤒';
       default: return '😊';
     }
   };
@@ -585,10 +767,16 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
     switch (alexAnimation) {
       case 'sleep': return '🛌';
       case 'eat': return '🍽️';
-      case 'exercise': return '🏋️';
-      case 'relax': return '📺';
+      case 'cookHealthy': return '👨‍🍳';
+      case 'exercise': return '🏃‍♂️';
+      case 'weightLifting': return '🏋️‍♂️';
+      case 'relax': return '😌';
+      case 'meditation': return '🧘‍♂️';
       case 'drinkWater': return '💧';
       case 'shower': return '🚿';
+      case 'brushTeeth': return '🦷';
+      case 'readBook': return '📚';
+      case 'watchTV': return '📺';
       default: return '🧍';
     }
   };
@@ -618,6 +806,9 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
         sleepQuality: 50,
         relationships: 50,
         productivity: 50,
+        hygiene: 50,
+        nutrition: 50,
+        fitness: 50,
         mood: 'happy'
       },
       dailyActions: {
@@ -626,13 +817,28 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
         exercise: false,
         relax: false,
         drinkWater: false,
-        shower: false
+        shower: false,
+        brushTeeth: false,
+        cookHealthy: false,
+        readBook: false,
+        watchTV: false,
+        meditation: false,
+        weightLifting: false
       },
-      lastActionTime: new Date()
+      lastActionTime: new Date(),
+      consecutiveGoodActions: 0,
+      consecutiveBadActions: 0
     });
     setAlexAnimation('idle');
-    setShowFeedback({ show: false, message: '', type: 'positive' });
-    setShowConfirmation({ show: false, action: '', actionId: 'sleep', room: '' });
+    setShowFeedback({ show: false, message: '', type: 'positive', points: 0 });
+    setShowConfirmation({ 
+      show: false, 
+      action: '', 
+      actionId: 'sleep', 
+      room: '', 
+      actionType: 'neutral', 
+      consequences: [] 
+    });
   };
 
   const toggleMusic = () => {
@@ -679,7 +885,6 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
             </div>
             
             <div className="flex items-center gap-2">
-              {/* Game Clock */}
               <div className={`flex items-center gap-1 px-3 py-1 rounded-lg transition-colors duration-300 ${
                 isDark ? 'bg-slate-800 text-white' : 'bg-gray-200 text-gray-900'
               }`}>
@@ -687,7 +892,6 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
                 <span className="text-sm font-mono">{formatGameTime()}</span>
               </div>
 
-              {/* Music Toggle */}
               <button
                 onClick={toggleMusic}
                 className={`p-2 rounded-lg transition-colors relative ${
@@ -712,7 +916,6 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
                 )}
               </button>
 
-              {/* Sound Effects Toggle */}
               <button
                 onClick={toggleSound}
                 className={`p-2 rounded-lg transition-colors ${
@@ -849,6 +1052,9 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
           {/* Room Actions */}
           {currentRoom.actions.map((action) => {
             const isUsed = gameState.dailyActions[action.id];
+            const actionTypeColor = action.actionType === 'positive' ? 'border-green-500/50' : 
+                                   action.actionType === 'negative' ? 'border-red-500/50' : 'border-blue-500/50';
+            
             return (
               <button
                 key={action.id}
@@ -859,8 +1065,8 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
                       ? 'bg-slate-700/50 border-slate-600 text-slate-500 cursor-not-allowed'
                       : 'bg-gray-200/50 border-gray-300 text-gray-500 cursor-not-allowed'
                     : isDark
-                      ? 'bg-slate-800/80 border-slate-600 text-white hover:bg-slate-700/80 hover:border-slate-500 cursor-pointer'
-                      : 'bg-white/80 border-emerald-300 text-emerald-700 hover:bg-emerald-50/80 hover:border-emerald-400 cursor-pointer'
+                      ? `bg-slate-800/80 ${actionTypeColor} text-white hover:bg-slate-700/80 cursor-pointer`
+                      : `bg-white/80 ${actionTypeColor} text-emerald-700 hover:bg-emerald-50/80 cursor-pointer`
                 }`}
                 style={{
                   left: `${action.position.x}%`,
@@ -874,6 +1080,14 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
                   <span className="text-xs font-medium">{action.name}</span>
                   {isUsed && (
                     <div className="text-xs text-green-400">✓</div>
+                  )}
+                  {!isUsed && (
+                    <div className={`text-xs ${
+                      action.actionType === 'positive' ? 'text-green-400' :
+                      action.actionType === 'negative' ? 'text-red-400' : 'text-blue-400'
+                    }`}>
+                      {action.actionType === 'positive' ? '+' : action.actionType === 'negative' ? '-' : '?'}
+                    </div>
                   )}
                 </div>
               </button>
@@ -893,7 +1107,7 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
             <p className="text-xs text-center mt-1 opacity-75">{currentRoom.description}</p>
           </div>
 
-          {/* Confirmation Modal */}
+          {/* Enhanced Confirmation Modal */}
           {showConfirmation.show && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
               <div className={`backdrop-blur-sm rounded-2xl p-6 border max-w-sm mx-4 transition-colors duration-300 ${
@@ -902,16 +1116,42 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
                   : 'bg-white/90 border-gray-200 shadow-lg'
               }`}>
                 <div className="text-center">
+                  <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                    showConfirmation.actionType === 'positive' ? 'bg-green-500/20' :
+                    showConfirmation.actionType === 'negative' ? 'bg-red-500/20' : 'bg-blue-500/20'
+                  }`}>
+                    {showConfirmation.actionType === 'positive' ? (
+                      <Star className="w-8 h-8 text-green-400" />
+                    ) : showConfirmation.actionType === 'negative' ? (
+                      <AlertTriangle className="w-8 h-8 text-red-400" />
+                    ) : (
+                      <Eye className="w-8 h-8 text-blue-400" />
+                    )}
+                  </div>
+                  
                   <h3 className={`text-lg font-bold mb-3 transition-colors duration-300 ${
                     isDark ? 'text-white' : 'text-gray-900'
                   }`}>
-                    Confirmar Ação
+                    {showConfirmation.action}
                   </h3>
-                  <p className={`text-sm mb-6 transition-colors duration-300 ${
+                  
+                  <div className={`text-sm mb-6 transition-colors duration-300 ${
                     isDark ? 'text-slate-300' : 'text-gray-700'
                   }`}>
-                    Você deseja fazer Alex {showConfirmation.action.toLowerCase()}?
-                  </p>
+                    <p className="mb-3">Consequências possíveis:</p>
+                    <ul className="space-y-1 text-left">
+                      {showConfirmation.consequences.map((consequence, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <span className={`mt-1 ${
+                            showConfirmation.actionType === 'positive' ? 'text-green-400' :
+                            showConfirmation.actionType === 'negative' ? 'text-red-400' : 'text-blue-400'
+                          }`}>•</span>
+                          <span>{consequence}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
                   <div className="flex gap-3">
                     <button
                       onClick={() => confirmAction(false)}
@@ -921,13 +1161,17 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
                           : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
                       }`}
                     >
-                      Não
+                      Cancelar
                     </button>
                     <button
                       onClick={() => confirmAction(true)}
-                      className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-3 rounded-xl font-medium transition-colors"
+                      className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors ${
+                        showConfirmation.actionType === 'positive' ? 'bg-green-500 hover:bg-green-600' :
+                        showConfirmation.actionType === 'negative' ? 'bg-red-500 hover:bg-red-600' :
+                        'bg-blue-500 hover:bg-blue-600'
+                      } text-white`}
                     >
-                      Sim
+                      Confirmar
                     </button>
                   </div>
                 </div>
@@ -946,9 +1190,7 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
                 <div className="text-center">
                   <h3 className={`text-lg font-bold mb-3 transition-colors duration-300 ${
                     isDark ? 'text-white' : 'text-gray-900'
-                  }`}>
-                    Alex saiu de casa!
-                  </h3>
+                  }`}>Alex saiu de casa!</h3>
                   <p className={`text-sm mb-6 transition-colors duration-300 ${
                     isDark ? 'text-slate-300' : 'text-gray-700'
                   }`}>
@@ -958,14 +1200,14 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
                     onClick={handleOutsideActionOK}
                     className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-medium transition-colors"
                   >
-                    OK
+                    Ver resultado
                   </button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Feedback Modal */}
+          {/* Enhanced Feedback Modal */}
           {showFeedback.show && (
             <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
               <div className={`backdrop-blur-sm rounded-2xl p-6 border max-w-sm mx-4 transition-colors duration-300 ${
@@ -973,27 +1215,38 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
                   ? isDark
                     ? 'bg-green-500/20 border-green-500/30 text-green-400'
                     : 'bg-green-100/80 border-green-300/50 text-green-700'
-                  : isDark
-                    ? 'bg-red-500/20 border-red-500/30 text-red-400'
-                    : 'bg-red-100/80 border-red-300/50 text-red-700'
+                  : showFeedback.type === 'negative'
+                    ? isDark
+                      ? 'bg-red-500/20 border-red-500/30 text-red-400'
+                      : 'bg-red-100/80 border-red-300/50 text-red-700'
+                    : isDark
+                      ? 'bg-blue-500/20 border-blue-500/30 text-blue-400'
+                      : 'bg-blue-100/80 border-blue-300/50 text-blue-700'
               }`}>
-                <p className="text-center font-medium">{showFeedback.message}</p>
+                <div className="text-center">
+                  <div className={`text-2xl font-bold mb-2 ${
+                    showFeedback.points > 0 ? 'text-green-400' :
+                    showFeedback.points < 0 ? 'text-red-400' : 'text-blue-400'
+                  }`}>
+                    {showFeedback.points > 0 ? '+' : ''}{showFeedback.points} pontos
+                  </div>
+                  <p className="font-medium">{showFeedback.message}</p>
+                </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* Bottom Stats */}
+        {/* Enhanced Bottom Stats */}
         <div className={`flex-shrink-0 px-4 py-3 border-t transition-colors duration-300 ${
           isDark ? 'bg-slate-900/50 border-slate-800' : 'bg-emerald-50/50 border-emerald-200'
         }`}>
-          <div className="grid grid-cols-5 gap-2 text-center">
+          <div className="grid grid-cols-4 gap-2 text-center">
             {[
               { label: 'Saúde', value: gameState.alex.health, icon: Heart, color: 'text-red-400' },
-              { label: 'Energia', value: gameState.alex.energy, icon: Award, color: 'text-yellow-400' },
-              { label: 'Sono', value: gameState.alex.sleepQuality, icon: Bed, color: 'text-purple-400' },
-              { label: 'Social', value: gameState.alex.relationships, icon: Users, color: 'text-blue-400' },
-              { label: 'Produtividade', value: gameState.alex.productivity, icon: Briefcase, color: 'text-green-400' }
+              { label: 'Energia', value: gameState.alex.energy, icon: Zap, color: 'text-yellow-400' },
+              { label: 'Higiene', value: gameState.alex.hygiene, icon: Bath, color: 'text-blue-400' },
+              { label: 'Nutrição', value: gameState.alex.nutrition, icon: Utensils, color: 'text-green-400' }
             ].map((stat, index) => (
               <div key={index}>
                 <div className="flex items-center justify-center gap-1 mb-1">
@@ -1010,8 +1263,9 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
                 }`}>
                   <div
                     className={`h-1 rounded-full transition-all duration-300 ${
-                      stat.value >= 70 ? 'bg-green-400' :
-                      stat.value >= 40 ? 'bg-yellow-400' : 'bg-red-400'
+                      stat.value >= 80 ? 'bg-green-400' :
+                      stat.value >= 60 ? 'bg-yellow-400' :
+                      stat.value >= 40 ? 'bg-orange-400' : 'bg-red-400'
                     }`}
                     style={{ width: `${stat.value}%` }}
                   />
@@ -1019,6 +1273,18 @@ const DreamStoryGame: React.FC<DreamStoryGameProps> = ({ onBack }) => {
               </div>
             ))}
           </div>
+          
+          {/* Consecutive Actions Indicator */}
+          {(gameState.consecutiveGoodActions >= 3 || gameState.consecutiveBadActions >= 3) && (
+            <div className={`mt-2 text-center text-xs font-medium ${
+              gameState.consecutiveGoodActions >= 3 ? 'text-green-400' : 'text-red-400'
+            }`}>
+              {gameState.consecutiveGoodActions >= 3 
+                ? `🔥 ${gameState.consecutiveGoodActions} ações positivas seguidas! Bônus ativo!`
+                : `⚠️ ${gameState.consecutiveBadActions} ações negativas seguidas! Cuidado!`
+              }
+            </div>
+          )}
         </div>
       </div>
     </div>
